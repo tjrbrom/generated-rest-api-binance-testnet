@@ -3,6 +3,7 @@ package com.binance.testnet.controller;
 import com.binance.testnet.service.IBinanceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,7 +30,7 @@ public class BinanceController {
         return binanceService.exchangeInfo();
     }
 
-    @GetMapping("/order")
+    @PostMapping("/order")
     public String createOrder(@RequestParam("symbol") String symbol,
                               @RequestParam("side") String side,
                               @RequestParam("type") String type,
