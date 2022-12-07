@@ -7,6 +7,7 @@ endpoints of the Binance API and displaying the response.
 
 * Java 14
 * Maven
+* RabbitMQ
 * Docker (optional)
 
 # Build and Run
@@ -46,6 +47,20 @@ $ docker run -p 8080:8080 binance-testnet
 
 This will start a Docker container for the application and map port 8080 on the host to port 8080 in the container. You
 can access the application at http://localhost:8080 in your web browser.
+
+# Configuration
+
+The following application properties must be configured:
+
+* binance.api.key: The Binance API key.
+* binance.api.secret: The Binance API secret.
+* rabbitmq.host: The host of the RabbitMQ server.
+* rabbitmq.port: The port of the RabbitMQ server.
+* rabbitmq.username: The username for authenticating to the RabbitMQ server.
+* rabbitmq.password: The password for authenticating to the RabbitMQ server.
+* rabbitmq.exchange: The exchange to be used by the application.
+* rabbitmq.queue: The queue to be used by the application.
+* rabbitmq.routing-key: The routing key to be used by the application.
 
 # Endpoints
 
