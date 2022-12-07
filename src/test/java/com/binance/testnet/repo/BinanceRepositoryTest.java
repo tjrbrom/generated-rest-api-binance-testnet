@@ -1,52 +1,85 @@
 package com.binance.testnet.repo;
 
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.web.client.RestTemplate;
+
+import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * Generated using openai.
- */
 @ExtendWith(MockitoExtension.class)
 public class BinanceRepositoryTest {
-    @Mock
-    private RestTemplate restTemplate;
 
-    @Mock
-    private BinanceRepository binanceRepository;
+    public static MockWebServer mockBackEnd;
 
-    @Test
-    public void testPing() {
-        when(binanceRepository.callBinanceApi("v1/ping")).thenReturn("pong");
-        assertEquals("pong", binanceRepository.ping());
-        verify(restTemplate).getForObject("https://testnet.binance.com/api/v1/ping", String.class);
+    private static BinanceRepository binanceRepository;
+
+    @BeforeAll
+    static void setUp() throws IOException {
+        binanceRepository = new BinanceRepository();
+        mockBackEnd = new MockWebServer();
+        mockBackEnd.start();
+    }
+
+    @AfterAll
+    static void tearDown() throws IOException {
+        mockBackEnd.shutdown();
     }
 
     @Test
-    public void testTime() {
-        when(binanceRepository.callBinanceApi("v1/time")).thenReturn("1575570075983");
-        assertEquals("1575570075983", binanceRepository.time());
-        verify(restTemplate).getForObject("https://testnet.binance.com/api/v1/time", String.class);
+    void ping() throws Exception {
+        mockBackEnd.enqueue(new MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody("{\"serverTime\": 123456}"));
+
+        CompletableFuture<String> response = binanceRepository.ping();
+
+        assertTrue(response.isDone());
+        assertEquals("{\"serverTime\": 123456}", response.get());
     }
 
     @Test
-    public void testExchangeInfo() {
-        when(binanceRepository.callBinanceApi("v1/exchangeInfo")).thenReturn("{...}");
-        assertEquals("{...}", binanceRepository.exchangeInfo());
-        verify(restTemplate).getForObject("https://testnet.binance.com/api/v1/exchangeInfo", String.class);
+    void time() throws Exception {
+        mockBackEnd.enqueue(new MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody("{\"serverTime\": 123456}"));
+
+        CompletableFuture<String> response = binanceRepository.time();
+
+        assertTrue(response.isDone());
+        assertEquals("{\"serverTime\": 123456}", response.get());
     }
 
     @Test
-    public void testCreateOrder() {
-        when(binanceRepository.callBinanceApi("v3/order?symbol=ETHBTC&side=BUY&type=MARKET&timeInForce=GTC&quantity=0.1&price=0.001"))
-                .thenReturn("{...}");
-        assertEquals("{...}", binanceRepository.createOrder("ETHBTC", "BUY", "MARKET", "GTC", "0.1", "0.001"));
-        verify(restTemplate).getForObject("https://testnet.binance.com/api/v3/order?symbol=ETHBTC&side=BUY&type=MARKET&timeInForce=GTC&quantity=0.1&price=0.001", String.class);
+    void exchangeInfo() throws Exception {
+        mockBackEnd.enqueue(new MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody("{\"timezone\": \"UTC\", \"serverTime\": 123456}"));
+
+        CompletableFuture<String> response = binanceRepository.exchangeInfo();
+
+        assertTrue(response.isDone());
+        assertEquals("{\"timezone\": \"UTC\", \"serverTime\": 123456}",
+                response.get());
     }
+
+    @Test
+    void createOrder() throws Exception {
+        mockBackEnd.enqueue(new MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody("{\"symbol\": \"BTCUSDT\", \"orderId\": 123456, \"status\": \"FILLED\"}"));
+
+        CompletableFuture<String> response = binanceRepository.createOrder("BTCUSDT", "BUY", "LIMIT", "GTC", "1.0", "10500.0");
+
+        assertTrue(response.isDone());
+        assertEquals("{\"symbol\": \"BTCUSDT\", \"orderId\": 123456, \"status\": \"FILLED\"}", response.get());
+    }
+
 }

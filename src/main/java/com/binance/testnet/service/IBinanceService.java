@@ -1,14 +1,16 @@
 package com.binance.testnet.service;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
  * Generated using openai.
  */
 public interface IBinanceService {
-    String ping();
+    CompletableFuture<String> ping();
 
-    String time();
+    CompletableFuture<String> time();
 
-    String exchangeInfo();
+    CompletableFuture<String> exchangeInfo();
 
-    String createOrder(String symbol, String side, String type, String timeInForce, String quantity, String price);
+    CompletableFuture<String> createOrder(String symbol, String side, String type, String timeInForce, String quantity, String price);
 }

@@ -1,50 +1,80 @@
 package com.binance.testnet.controller;
 
 import com.binance.testnet.service.IBinanceService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.util.concurrent.CompletableFuture;
+
+import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Generated using openai.
- */
 @ExtendWith(MockitoExtension.class)
 public class BinanceControllerTest {
+    private MockMvc mockMvc;
+
     @Mock
     private IBinanceService binanceService;
 
     @InjectMocks
     private BinanceController binanceController;
 
-    @Test
-    public void testPing() {
-        when(binanceService.ping()).thenReturn("pong");
-        assertEquals("pong", binanceController.ping());
+    @BeforeEach
+    void setUp() {
+        mockMvc = MockMvcBuilders.standaloneSetup(binanceController).build();
     }
 
     @Test
-    public void testTime() {
-        when(binanceService.time()).thenReturn("1575462549495");
-        assertEquals("1575462549495", binanceController.time());
+    void testPing() throws Exception {
+        when(binanceService.ping()).thenReturn(CompletableFuture.completedFuture("pong"));
+
+        mockMvc.perform(get("/ping"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", is("pong")));
     }
 
     @Test
-    public void testExchangeInfo() {
-        when(binanceService.exchangeInfo()).thenReturn("{...}");
-        assertEquals("{...}", binanceController.exchangeInfo());
+    void testTime() throws Exception {
+        when(binanceService.time()).thenReturn(CompletableFuture.completedFuture("1594289800000"));
+
+        mockMvc.perform(get("/time"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", is("1594289800000")));
     }
 
     @Test
-    public void testCreateOrder() {
-        when(binanceService.createOrder("ETHBTC", "BUY", "MARKET",
-                "GTC", "1.0", "0.0"))
-                .thenReturn("{...}");
-        assertEquals("{...}", binanceController.createOrder("ETHBTC",
-                "BUY", "MARKET", "GTC", "1.0", "0.0"));
+    void testExchangeInfo() throws Exception {
+        when(binanceService.exchangeInfo()).thenReturn(CompletableFuture.completedFuture("{...}"));
+
+        mockMvc.perform(get("/exchangeInfo"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", is("{...}")));
     }
+
+    @Test
+    void testCreateOrder() throws Exception {
+        when(binanceService.createOrder("symbol", "side", "type", "timeInForce", "quantity", "price"))
+                .thenReturn(CompletableFuture.completedFuture("{...}"));
+
+        mockMvc.perform(post("/order")
+                        .param("symbol", "symbol")
+                        .param("side", "side")
+                        .param("type", "type")
+                        .param("timeInForce", "timeInForce")
+                        .param("quantity", "quantity")
+                        .param("price", "price"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", is("{...}")));
+    }
+
 }
