@@ -1,6 +1,7 @@
 package com.binance.testnet.controller;
 
 import com.binance.testnet.service.IBinanceService;
+import com.binance.testnet.service.RabbitMQSender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,8 +15,12 @@ import java.util.concurrent.CompletableFuture;
  */
 @RestController
 public class BinanceController {
+
     @Autowired
     private IBinanceService binanceService;
+
+    @Autowired
+    private RabbitMQSender rabbitMQSender;
 
     @GetMapping("/ping")
     public CompletableFuture<String> ping() {
@@ -39,6 +44,13 @@ public class BinanceController {
                                                  @RequestParam("timeInForce") String timeInForce,
                                                  @RequestParam("quantity") String quantity,
                                                  @RequestParam("price") String price) {
-        return binanceService.createOrder(symbol, side, type, timeInForce, quantity, price);
+        // Create the order on Binance
+        CompletableFuture<String> result = binanceService.createOrder(symbol, side, type, timeInForce, quantity, price);
+
+        // Send a message to RabbitMQ when the order has been created
+        return result.thenApply(order -> {
+            rabbitMQSender.send("Order created: " + order);
+            return order;
+        });
     }
 }
