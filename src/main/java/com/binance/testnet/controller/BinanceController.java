@@ -3,6 +3,9 @@ package com.binance.testnet.controller;
 import com.binance.testnet.service.IBinanceService;
 import com.binance.testnet.service.RabbitMQSender;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -14,6 +17,7 @@ import java.util.concurrent.CompletableFuture;
  * Generated using openai.
  */
 @RestController
+@CacheConfig(cacheNames = "binance")
 public class BinanceController {
 
     @Autowired
@@ -22,21 +26,25 @@ public class BinanceController {
     @Autowired
     private RabbitMQSender rabbitMQSender;
 
+    @Cacheable
     @GetMapping("/ping")
     public CompletableFuture<String> ping() {
         return binanceService.ping();
     }
 
+    @Cacheable
     @GetMapping("/time")
     public CompletableFuture<String> time() {
         return binanceService.time();
     }
 
+    @Cacheable
     @GetMapping("/exchangeInfo")
     public CompletableFuture<String> exchangeInfo() {
         return binanceService.exchangeInfo();
     }
 
+    @CachePut
     @PostMapping("/order")
     public CompletableFuture<String> createOrder(@RequestParam("symbol") String symbol,
                                                  @RequestParam("side") String side,
